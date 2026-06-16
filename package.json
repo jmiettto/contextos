@@ -1,0 +1,65 @@
+{
+  "name": "contextos",
+  "version": "0.1.0",
+  "description": "Personal context harness for Pi that retrieves, learns, audits, and reuses durable context.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "context-engineering",
+    "memory"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "contextos": "./bin/contextos.js"
+  },
+  "files": [
+    "bin",
+    "extensions",
+    "src",
+    "skills",
+    "prompts",
+    "README.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.10.1",
+    "typebox": "*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/contextos.ts"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}
