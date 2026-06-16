@@ -37,7 +37,11 @@ describe("contextOS Pi extension", () => {
         "contextos_upsert",
         "contextos_questionnaire",
         "contextos_invalidate",
-        "contextos_learning_log"
+        "contextos_learning_log",
+        "contextos_session_search",
+        "contextos_memory_read",
+        "contextos_memory_upsert",
+        "contextos_distill_skill"
       ])
     );
 
@@ -51,7 +55,41 @@ describe("contextOS Pi extension", () => {
 
     expect(result.systemPrompt).toContain("BASE SYSTEM");
     expect(result.systemPrompt).toContain("No sufficient durable context found");
+    expect(result.systemPrompt).toContain("contextOS Curated Memory");
     expect(result.message.content).toContain("Qual planilha voce quer atualizar?");
+
+    await handlers.get("session_shutdown")?.({}, ctx);
+  });
+
+  it("records user input and assistant messages in the session ledger", async () => {
+    const handlers = new Map<string, Function>();
+    const tools = new Map<string, any>();
+    const pi = {
+      on: vi.fn((event: string, handler: Function) => handlers.set(event, handler)),
+      registerCommand: vi.fn(),
+      registerTool: vi.fn((definition: { name: string }) => tools.set(definition.name, definition))
+    };
+    const ctx = { ui: { notify: vi.fn(), setStatus: vi.fn() } };
+
+    contextOS(pi as never);
+
+    await handlers.get("session_start")?.({}, ctx);
+    await handlers.get("input")?.({ text: "quero atualizar a planilha de forecast", source: "interactive" }, ctx);
+    await handlers.get("message_end")?.(
+      { message: { role: "assistant", content: [{ type: "text", text: "Use a aba Forecast e valide o total." }] } },
+      ctx
+    );
+
+    const result = await tools.get("contextos_session_search").execute(
+      "tool",
+      { query: "forecast total", limit: 5 },
+      undefined,
+      undefined,
+      ctx
+    );
+
+    expect(result.content[0].text).toContain("forecast");
+    expect(result.content[0].text).toContain("assistant");
 
     await handlers.get("session_shutdown")?.({}, ctx);
   });

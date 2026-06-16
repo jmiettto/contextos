@@ -5,7 +5,8 @@ export type ContextCardKind =
   | "project"
   | "person"
   | "decision"
-  | "runbook";
+  | "runbook"
+  | "skill";
 
 export type ContextSource = {
   label: string;
@@ -38,7 +39,7 @@ export type ContextCardInput = Partial<Omit<ContextCard, "id" | "version" | "upd
   title: string;
 };
 
-export type AuditAction = "upsert" | "invalidate" | "undo" | "contradiction";
+export type AuditAction = "upsert" | "invalidate" | "undo" | "contradiction" | "memory_update" | "skill_distill";
 
 export type AuditEvent = {
   id: string;
@@ -54,6 +55,46 @@ export type AuditEvent = {
 export type SearchResult = {
   card: ContextCard;
   score: number;
+};
+
+export type SessionRole = "user" | "assistant" | "tool" | "system";
+
+export type SessionMessage = {
+  id: string;
+  sessionId: string;
+  role: SessionRole;
+  content: string;
+  createdAt: string;
+};
+
+export type SessionSearchResult = {
+  message: SessionMessage;
+  score: number;
+};
+
+export type CuratedMemoryKind = "memory" | "user";
+
+export type CuratedMemory = {
+  memory: string;
+  user: string;
+};
+
+export type DistillSkillInput = {
+  name: string;
+  description: string;
+  triggers: string[];
+  steps: string[];
+  evidence?: string[];
+  notes?: string[];
+  confidence?: number;
+};
+
+export type DistilledSkill = {
+  id: string;
+  path: string;
+  content: string;
+  card: ContextCard;
+  audit: AuditEvent;
 };
 
 export type UpsertResult =

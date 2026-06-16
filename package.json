@@ -1,6 +1,6 @@
 {
   "name": "contextos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Personal context harness for Pi that retrieves, learns, audits, and reuses durable context.",
   "type": "module",
   "keywords": [

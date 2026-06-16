@@ -53,12 +53,25 @@ declare module "@earendil-works/pi-coding-agent" {
     reason?: string;
   };
 
+  export type MessageEvent = {
+    message: {
+      role?: string;
+      content?: unknown;
+    };
+  };
+
+  export type AgentEndEvent = {
+    messages?: unknown[];
+  };
+
   export type ExtensionAPI = {
     on(event: "input", handler: (event: InputEvent, ctx: ExtensionContext) => unknown): void;
     on(
       event: "before_agent_start",
       handler: (event: BeforeAgentStartEvent, ctx: ExtensionContext) => unknown
     ): void;
+    on(event: "message_end", handler: (event: MessageEvent, ctx: ExtensionContext) => unknown): void;
+    on(event: "agent_end", handler: (event: AgentEndEvent, ctx: ExtensionContext) => unknown): void;
     on(event: "session_start" | "session_shutdown", handler: (event: SessionEvent, ctx: ExtensionContext) => unknown): void;
     on(event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown): void;
     registerCommand(name: string, options: CommandDefinition): void;

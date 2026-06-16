@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -123,5 +123,61 @@ describe("ContextStore", () => {
     expect(result.status).toBe("saved");
     expect(store.get("redaction")?.summary).toContain("[redacted_secret]");
     expect(store.get("redaction")?.summary).toContain("[email]");
+  });
+
+  it("records and searches prior session messages", () => {
+    store.recordSessionMessage({
+      sessionId: "session-a",
+      role: "user",
+      content: "Atualizamos a planilha de pipeline com a aba Base preservada."
+    });
+    store.recordSessionMessage({
+      sessionId: "session-a",
+      role: "assistant",
+      content: "Validacao feita pelo total da aba Resumo."
+    });
+
+    const results = store.searchSessions("pipeline aba resumo");
+
+    expect(results[0]?.message.sessionId).toBe("session-a");
+    expect(results.map((result) => result.message.content).join("\n")).toContain("Resumo");
+  });
+
+  it("maintains curated MEMORY and USER files with redaction", () => {
+    const memoryAudit = store.updateCuratedMemory({
+      kind: "memory",
+      content: "Sempre validar total antes de enviar.",
+      source: "test"
+    });
+    const userAudit = store.updateCuratedMemory({
+      kind: "user",
+      content: "Email preferido test@example.com",
+      source: "test"
+    });
+
+    const memory = store.curatedMemory();
+
+    expect(memoryAudit.action).toBe("memory_update");
+    expect(userAudit.action).toBe("memory_update");
+    expect(memory.memory).toContain("Sempre validar total");
+    expect(memory.user).toContain("[email]");
+    expect(store.curatedMemoryPrompt()).toContain("USER.md");
+  });
+
+  it("distills completed workflows into skill files and searchable cards", () => {
+    const skill = store.distillSkill({
+      name: "Atualizar Pipeline",
+      description: "Atualiza a planilha de pipeline com validacao.",
+      triggers: ["pipeline", "planilha de pipeline"],
+      steps: ["Abrir aba Base", "Colar export atualizado", "Conferir aba Resumo"],
+      evidence: ["Fluxo concluido com sucesso em teste"],
+      notes: ["Preservar formulas"],
+      confidence: 0.9
+    });
+
+    expect(existsSync(skill.path)).toBe(true);
+    expect(skill.content).toContain("## Procedure");
+    expect(store.get(skill.id)?.kind).toBe("skill");
+    expect(store.search("planilha pipeline")[0]?.card.id).toBe(skill.id);
   });
 });
